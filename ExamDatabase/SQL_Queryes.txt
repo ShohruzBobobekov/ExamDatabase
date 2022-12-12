@@ -1,0 +1,204 @@
+﻿CREATE DATABASE EventManagement
+CREATE TABLE Users
+(
+	Id integer identity(1,1),
+	UserName  nvarchar(100) unique,
+	Password nvarchar(8),
+	Role integer,
+
+	constraint PK_User PRIMARY KEY(Id)
+)
+
+CREATE TABLE Rooms
+(
+	Id integer identity(1,1),
+	RoomNumber integer,
+	RoomName nvarchar(60),
+	PlaceNumber integer
+
+	CONSTRAINT PK_Rooms PRIMARY KEY(Id)
+)
+--drop table SavedEvents
+CREATE TABLE  SavedEvents
+(
+	Id integer identity(1,1),
+	EventName nvarchar(200),
+	StartTime DATETIME,
+	EndTime DATETIME,
+	RoomId INTEGER,
+	ConfirmationStatus BIT
+
+	CONSTRAINT PK_Events primary key(Id),
+
+	CONSTRAINT FK_Rooms_To_Event foreign key(RoomId) 
+	REFERENCES Rooms(Id) on delete cascade
+)
+--Alter table SavedEvents add  EventName nvarchar(200)
+CREATE TABLE ReservedPlaces
+(
+	EventId integer,
+	PlaceX integer,
+	PlaceY integer,
+	UserId integer
+
+	constraint FK_Event_Place foreign key(EventId) 
+	references SavedEvents(Id) on delete cascade,
+
+	constraint FK_User_Place foreign key(UserId) 
+	references Users(Id) on delete cascade
+)
+--==================================================Users
+CREATE PROCEDURE InsertUser
+	(@UserName NVARCHAR(100),
+	@Password NVARCHAR(8),
+	@Role INTEGER)
+AS
+begin 
+	INSERT INTO Users(UserName,Password,Role) values
+	(@UserName,@Password,@Role)
+end;
+--==================================================ok
+CREATE PROCEDURE SelectUser
+	(@UserName NVARCHAR(100),
+	@Password NVARCHAR(8))
+AS
+begin 
+	select * from Users as u 
+	where @UserName=u.UserName and @Password=u.Password
+end;
+--==================================================
+CREATE PROCEDURE DeleteUser
+	(@UserId integer)
+AS
+begin 
+	delete Users where Id=@UserId
+end;
+--==================================================
+CREATE PROCEDURE UpdateUser
+	(@UserId integer,
+	@UserName NVARCHAR(100),
+	@Password NVARCHAR(8),
+	@Role INTEGER)
+AS
+begin 
+	update Users set UserName=@UserName,
+		Password=@Password,
+		Role=@Role
+	where Id=@UserId
+end;
+--==================================================Rooms
+CREATE PROCEDURE InsertRoom
+	(@RoomNumber integer,
+	@RoomName nvarchar(60),
+	@PlaceNumber integer)
+AS
+begin 
+	INSERT INTO Rooms(RoomNumber,RoomName,PlaceNumber) values
+	(@RoomNumber,@RoomName,@PlaceNumber)
+end;
+--==================================================
+CREATE PROCEDURE SelectAllRooms	
+AS
+begin 
+	select * from Rooms
+end;
+--==================================================
+CREATE PROCEDURE SelectEmptyRooms
+	(
+		@Start datetime,
+		@End Datetime
+	)
+AS
+begin 
+	select r.Id, r.RoomNumber,r.RoomName,r.PlaceNumber from SavedEvents as e 
+	inner join Rooms as r on e.RoomId=r.Id
+	where (e.StartTime<@End or e.EndTime<@Start) or e.ConfirmationStatus=0
+end;
+--==================================================
+CREATE PROCEDURE DeleteRoom
+	(@RoomId integer)
+AS
+begin 
+	delete Rooms where Id=@RoomId
+end;
+--==================================================
+CREATE PROCEDURE UpdateRoom
+	(@RoomId integer,
+	@RoomNumber integer,
+	@RoomName nvarchar(60),
+	@PlaceNumber integer)
+AS
+begin 
+	update Rooms set RoomName=@RoomName,
+	RoomNumber=@RoomNumber,
+	PlaceNumber=@PlaceNumber
+	where Id=@RoomId
+end;
+--==================================================
+CREATE PROCEDURE InsertEvent
+	(
+		@StartTime DATETIME,
+		@EndTime DATETIME,
+		@RoomId INTEGER		
+	)
+AS
+begin 
+	insert into SavedEvents(StartTime,EndTime,RoomId) values
+	( @StartTime, @EndTime, @RoomId )
+end;
+--==================================================
+CREATE PROCEDURE SelectEvents
+	
+AS
+begin 
+	select*from SavedEvents order by StartTime 
+end;
+--==================================================
+CREATE PROCEDURE DeleteEvent
+	(
+		@StartTime DATETIME,
+		@EndTime DATETIME,
+		@RoomId INTEGER		
+	)
+AS
+begin 
+	delete SavedEvents 
+	where StartTime=@StartTime 
+	and EndTime=@EndTime 
+	and RoomId=@RoomId
+end;
+--==================================================Reservation
+CREATE PROCEDURE InsertReservation
+	(
+		@EventId integer,
+		@PlaceX integer,
+		@PlaceY integer,
+		@UserId integer	
+	)
+AS
+begin 
+	insert into ReservedPlaces(EventId,PlaceX,PlaceY,UserId) values
+	(@EventId,@PlaceX,@PlaceY,@UserId)
+end;
+--==================================================
+CREATE PROCEDURE SelectReservation
+	(
+		@EventId integer		
+	)
+AS
+begin 
+	select r.PlaceX,r.PlaceY,e.EventName,u.UserName from ReservedPlaces as r
+	inner join SavedEvents as e on r.EventId=e.Id
+	inner join Users as u on r.UserId=u.Id
+	where r.EventId=@EventId
+end;
+--==================================================
+CREATE PROCEDURE SelectReservationCompany
+	(
+		@EventId integer		
+	)
+AS
+begin 
+	select * from ReservedPlaces 	
+	where EventId=@EventId
+end;
