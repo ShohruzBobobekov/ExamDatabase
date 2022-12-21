@@ -1,4 +1,6 @@
-﻿CREATE DATABASE EventManagement
+﻿
+
+CREATE DATABASE EventManagement
 CREATE TABLE Users
 (
 	Id integer identity(1,1),

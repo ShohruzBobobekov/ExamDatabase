@@ -7,6 +7,7 @@
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public Guid RoomId { get; set; }
+        public Room Room { get; set; }  
         public bool Status { get; set; }
     }
 }
