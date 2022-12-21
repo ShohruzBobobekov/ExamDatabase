@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ExamDatabase.Model
+﻿namespace ExamDatabase.Model
 {
     public class RecervedPlase
     {
-        public int EventId { get; set; }
+        public Guid EventId { get; set; }
         public int PlaseX { get; set; }
         public int PlaseY { get; set; }
-        public int UserId { get;set; }
+        public Guid UserId { get;set; }
 
-        public RecervedPlase(int eventId, int plaseX, int plaseY, int userId)
+        public RecervedPlase(Guid eventId, Guid userId, int plaseX, int plaseY)
         {
             EventId = eventId;
             PlaseX = plaseX;
